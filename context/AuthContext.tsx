@@ -1,75 +1,129 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useRouter } from 'expo-router';
+import { supabase } from '@/lib/supabase';
+import { Session, User } from '@supabase/supabase-js';
 
-const AuthContext = createContext({});
+interface Profile {
+  id: string;
+  email: string;
+  name?: string;
+  profile_pic?: string;
+  bio?: string;
+  created_at: string;
+  updated_at: string;
+}
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+interface AuthContextType {
+  user: Profile | null;
+  session: Session | null;
+  isLoading: boolean;
+  login: (userData: { email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
+  signup: (userData: { email: string; password: string; name?: string }) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<{ success: boolean; error?: string }>;
+  updateUser: (userData: Partial<Profile>) => Promise<{ success: boolean; error?: string }>;
+}
+
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<Profile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Check for stored authentication data
-    checkStoredAuth();
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        loadUserProfile(session.user);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      (async () => {
+        setSession(session);
+        if (session) {
+          await loadUserProfile(session.user);
+        } else {
+          setUser(null);
+          setIsLoading(false);
+        }
+      })();
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const checkStoredAuth = async () => {
+  const loadUserProfile = async (authUser: User) => {
     try {
-      // Simulate checking for stored auth data (token, user info, etc.)
-      // You can replace this with actual AsyncStorage or SecureStore logic
-      const storedUser = await getStoredUser();
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .maybeSingle();
 
-      if (storedUser) {
-        setUser(storedUser);
+      if (error) throw error;
+
+      if (data) {
+        setUser(data);
       }
     } catch (error) {
-      console.error('Error checking stored auth:', error);
+      console.error('Error loading user profile:', error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Simulate getting stored user data
-  const getStoredUser = async () => {
-    // Replace with actual storage retrieval
-    // const token = await AsyncStorage.getItem('authToken');
-    // const userData = await AsyncStorage.getItem('userData');
-
-    // For demo purposes, return null to show login screen
-    return null;
-
-    // If you want to auto-login, you could return:
-    // return userData ? JSON.parse(userData) : null;
-  };
-
-  const login = async (userData) => {
+  const login = async (userData: { email: string; password: string }) => {
     try {
       setIsLoading(true);
 
-      // Simulate API call for login
-      // const response = await yourAuthAPI.login(userData);
-
-      // For demo, just set the user after a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const authenticatedUser = {
-        id: '1',
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: userData.email,
-        name: userData.name || userData.email.split('@')[0],
-        profilePic: 'https://randomuser.me/api/portraits/men/32.jpg',
-        // Add other user properties as needed
-      };
+        password: userData.password,
+      });
 
-      setUser(authenticatedUser);
+      if (error) throw error;
 
-      // Store auth data (in a real app)
-      // await AsyncStorage.setItem('authToken', response.token);
-      // await AsyncStorage.setItem('userData', JSON.stringify(authenticatedUser));
+      if (data.user) {
+        await loadUserProfile(data.user);
+      }
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Login error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || 'Login failed' };
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signup = async (userData: { email: string; password: string; name?: string }) => {
+    try {
+      setIsLoading(true);
+
+      const { data, error } = await supabase.auth.signUp({
+        email: userData.email,
+        password: userData.password,
+        options: {
+          data: {
+            name: userData.name || userData.email.split('@')[0],
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        await loadUserProfile(data.user);
+      }
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Signup error:', error);
+      return { success: false, error: error.message || 'Signup failed' };
     } finally {
       setIsLoading(false);
     }
@@ -79,87 +133,46 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
 
-      // Simulate API call for logout (if needed)
-      // await yourAuthAPI.logout();
+      const { error } = await supabase.auth.signOut();
 
-      // Clear stored data
-      await clearStoredAuth();
+      if (error) throw error;
 
-      // Clear user state
       setUser(null);
-
-      // Navigate to auth screen
+      setSession(null);
       router.replace('/(auth)/sign-in');
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || 'Logout failed' };
     } finally {
       setIsLoading(false);
     }
   };
 
-  const clearStoredAuth = async () => {
+  const updateUser = async (userData: Partial<Profile>) => {
     try {
-      // Clear all stored auth data
-      // await AsyncStorage.multiRemove(['authToken', 'userData']);
-      // Or use SecureStore equivalent
-    } catch (error) {
-      console.error('Error clearing stored auth:', error);
-    }
-  };
+      if (!user) throw new Error('No user logged in');
 
-  const signup = async (userData) => {
-    try {
-      setIsLoading(true);
+      const { error } = await supabase
+        .from('profiles')
+        .update(userData)
+        .eq('id', user.id);
 
-      // Simulate API call for signup
-      // const response = await yourAuthAPI.signup(userData);
+      if (error) throw error;
 
-      // For demo, just set the user after a delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const newUser = {
-        id: '1',
-        email: userData.email,
-        name: userData.name || userData.email.split('@')[0],
-        profilePic: 'https://randomuser.me/api/portraits/men/32.jpg',
-        // Add other user properties as needed
-      };
-
-      setUser(newUser);
-
-      // Store auth data (in a real app)
-      // await AsyncStorage.setItem('authToken', response.token);
-      // await AsyncStorage.setItem('userData', JSON.stringify(newUser));
+      setUser(prev => prev ? { ...prev, ...userData } : null);
 
       return { success: true };
-    } catch (error) {
-      console.error('Signup error:', error);
-      return { success: false, error: error.message };
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const updateUser = async (userData) => {
-    try {
-      setUser(prev => ({ ...prev, ...userData }));
-
-      // Update stored user data if needed
-      // await AsyncStorage.setItem('userData', JSON.stringify({ ...user, ...userData }));
-
-      return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Update user error:', error);
-      return { success: false, error: error.message };
+      return { success: false, error: error.message || 'Update failed' };
     }
   };
 
   const value = {
     user,
-    setUser,
+    session,
     isLoading,
     login,
     logout,
