@@ -1,11 +1,10 @@
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, Pressable,
-  KeyboardAvoidingView, Platform, ScrollView, Alert, Image
+  KeyboardAvoidingView, Platform, Alert, Image
 } from 'react-native';
 import React, { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/context/AuthContext';
-import { useRouter } from 'expo-router';
 
 export default function AuthScreen() {
   const [currentView, setCurrentView] = useState('sign-in');
@@ -17,7 +16,6 @@ export default function AuthScreen() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { login, signup } = useAuth();
-  const router = useRouter();
 
   // Fun CrinzPing messages for different states
   const getFunMessage = () => {
@@ -431,7 +429,7 @@ export default function AuthScreen() {
           {renderHeader()}
           <View style={styles.content}>
             <Text style={styles.title}>Success!</Text>
-            <Text style={styles.subtitle}>You're back in the game!</Text>
+            <Text style={styles.subtitle}>You&rsquo;re back in the game!</Text>
 
             <View style={styles.form}>
               <View style={styles.successContainer}>

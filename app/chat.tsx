@@ -10,7 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useAudioRecorder, useAudioPlayer, AudioModule, RecordingPresets } from 'expo-audio';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+const { width: screenWidth } = Dimensions.get('window');
 
 // Mock Data for a single chat
 const MESSAGES = [
@@ -77,7 +77,7 @@ const MediaActionSheet = ({ visible, onClose, onTakePhoto, onChooseFromGallery }
         stiffness: 300,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   if (!visible) return null;
 
@@ -163,7 +163,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }) => {
       setIsRecording(true);
       durationRef.current = 0;
       setRecordingDuration(0);
-    } catch (err) {
+    } catch {
       Alert.alert('Failed to start recording');
     }
   };
@@ -178,7 +178,7 @@ const AudioRecorder = ({ onRecordingComplete, onCancel }) => {
       } else {
         onCancel();
       }
-    } catch (err) {
+    } catch {
       Alert.alert('Failed to stop recording');
     }
   };
@@ -233,7 +233,7 @@ const AudioPreview = ({ audioUri, duration, onSend, onCancel }) => {
         audioPlayer.play();
         setIsPlaying(true);
       }
-    } catch (err) {
+    } catch {
       Alert.alert('Failed to play audio');
     }
   };

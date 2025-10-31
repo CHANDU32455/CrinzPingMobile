@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View, Text, StyleSheet, useWindowDimensions, TextInput,
   TouchableOpacity, Modal, ScrollView, Image, Alert, Platform
@@ -474,7 +474,7 @@ const FinalPreviewModal = ({ visible, onClose, onConfirm, content }) => {
       if (videoPlayer && content?.reelUri) {
         try {
           videoPlayer.pause();
-        } catch (videoError) {
+        } catch {
           console.log('Video player already released');
         }
       }

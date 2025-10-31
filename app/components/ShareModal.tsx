@@ -20,7 +20,7 @@ export default function ShareModal({ isVisible, onClose, shareLink, title = "Sha
     } else {
       Animated.timing(slideAnim, { toValue: screenHeight, duration: 300, useNativeDriver: true }).start();
     }
-  }, [isVisible]);
+  }, [isVisible, screenHeight, slideAnim]);
 
   const handleExternalShare = async () => {
     try {
@@ -28,7 +28,7 @@ export default function ShareModal({ isVisible, onClose, shareLink, title = "Sha
         message: `Check this out: ${shareLink}`,
         url: shareLink,
       });
-    } catch (error) {
+    } catch {
       Alert.alert("Error", "Something went wrong while sharing.");
     }
   };

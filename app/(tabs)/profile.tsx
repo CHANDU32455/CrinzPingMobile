@@ -24,7 +24,7 @@ const HamburgerDrawer = ({ visible, onClose }) => {
     } else {
       Animated.timing(slideAnim, { toValue: -drawerWidth, duration: 250, useNativeDriver: false }).start();
     }
-  }, [visible]);
+  }, [visible, drawerWidth, slideAnim]);
 
 // In your HamburgerDrawer component, update the handleLogout function:
 const handleLogout = () => {

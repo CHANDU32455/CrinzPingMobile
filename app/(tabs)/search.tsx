@@ -29,36 +29,40 @@ const MOCK_USERS = [
 ]
 
 // --- Grid item ---
-const GridItem = React.memo(({ item, onPress }) => (
-  <TouchableOpacity
-    style={styles.gridItem}
-    activeOpacity={0.8}
-    onPress={async () => {
-      await Haptics.selectionAsync()
-      onPress(item)
-    }}
-  >
-    <Image source={{ uri: item.imageUrl }} style={styles.gridImage} />
-  </TouchableOpacity>
-))
+const GridItem = React.memo(function GridItem({ item, onPress }: { item: any; onPress: (item: any) => void }) {
+  return (
+    <TouchableOpacity
+      style={styles.gridItem}
+      activeOpacity={0.8}
+      onPress={async () => {
+        await Haptics.selectionAsync()
+        onPress(item)
+      }}
+    >
+      <Image source={{ uri: item.imageUrl }} style={styles.gridImage} />
+    </TouchableOpacity>
+  )
+})
 
 // --- User item ---
-const UserListItem = React.memo(({ user, onPress }) => (
-  <TouchableOpacity
-    style={styles.userItem}
-    activeOpacity={0.7}
-    onPress={async () => {
-      await Haptics.selectionAsync()
-      onPress(user)
-    }}
-  >
-    <Image source={{ uri: user.avatar }} style={styles.userAvatar} />
-    <View style={styles.userInfoContainer}>
-      <Text style={styles.userUsername}>{user.username}</Text>
-      <Text style={styles.userTagline}>{user.tagline}</Text>
-    </View>
-  </TouchableOpacity>
-))
+const UserListItem = React.memo(function UserListItem({ user, onPress }: { user: any; onPress: (user: any) => void }) {
+  return (
+    <TouchableOpacity
+      style={styles.userItem}
+      activeOpacity={0.7}
+      onPress={async () => {
+        await Haptics.selectionAsync()
+        onPress(user)
+      }}
+    >
+      <Image source={{ uri: user.avatar }} style={styles.userAvatar} />
+      <View style={styles.userInfoContainer}>
+        <Text style={styles.userUsername}>{user.username}</Text>
+        <Text style={styles.userTagline}>{user.tagline}</Text>
+      </View>
+    </TouchableOpacity>
+  )
+})
 
 export default function SearchScreen() {
   const router = useRouter()
@@ -123,18 +127,18 @@ export default function SearchScreen() {
     }, 250)
 
     return () => clearTimeout(handler)
-  }, [query])
+  }, [query, setResults, gridPosts])
 
   // Handlers
   const handleUserPress = useCallback(
     user => router.push(`/profile/${user.username}`),
-    []
+    [router]
   )
   const handleImagePress = useCallback(
     item => router.push({ pathname: '/post/[id]', params: { id: item.id } }),
-    []
+    [router]
   )
-  const handleTagPress = useCallback(tag => router.push(`/explore/${tag}`), [])
+  const handleTagPress = useCallback(tag => router.push(`/explore/${tag}`), [router])
 
   // Render switch
   const renderContent = () => {

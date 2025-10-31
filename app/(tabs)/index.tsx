@@ -1,4 +1,4 @@
-import { StyleSheet, View, Dimensions, Switch, Text } from 'react-native';
+import { StyleSheet, View, Switch, Text } from 'react-native';
 import * as React from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -6,7 +6,6 @@ import CrinzTile from '../components/CrinzTile';
 import CommentModal from '../components/CommentModal';
 import ShareModal from '../components/ShareModal';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 // Enhanced static data for the home screen
 const homeCrinzData = {

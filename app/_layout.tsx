@@ -24,7 +24,7 @@ function Root() {
     } else if (user && inAuthGroup) {
       router.replace('/(tabs)');
     }
-  }, [user, segments, isLoading]);
+  }, [user, segments, isLoading, router]);
 
   if (isLoading) {
     return <View />;

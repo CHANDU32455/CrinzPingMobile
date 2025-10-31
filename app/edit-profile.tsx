@@ -36,7 +36,7 @@ const MediaActionSheet = ({ visible, onClose, onTakePhoto, onChooseFromGallery }
         stiffness: 300,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   if (!visible) return null;
 
@@ -216,7 +216,7 @@ export default function EditProfileScreen() {
             <View style={styles.preferenceRow}>
               <View style={styles.preferenceInfo}>
                 <Ionicons name="notifications-outline" size={24} color="#555" />
-                <Text style={styles.preferenceText}>"Roast" Notifications</Text>
+                <Text style={styles.preferenceText}>&ldquo;Roast&rdquo; Notifications</Text>
               </View>
               <Switch
                 value={roastNotifications}
